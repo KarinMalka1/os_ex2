@@ -1,0 +1,5 @@
+(bar, 3)
+(baz, 2)
+(foo, 2)
+(hello, 4)
+(world, 4)

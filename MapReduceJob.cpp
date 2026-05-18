@@ -101,19 +101,19 @@ void MapReduceJob::runReduceStage(const MapReduceClient& client)
     ReduceContext reduceCtx(outputVec, outputMutex);
     while (true)
     {
-        IntermediateVec currentBatch;
+        IntermediateVec batchToReduce;
         {
             std::lock_guard<std::mutex> lock(queueMutex);
             if (shuffleQueue.empty()) 
             {
                 break;
             }
-            currentBatch = std::move(shuffleQueue.front());
+            batchToReduce = std::move(shuffleQueue.front());
             shuffleQueue.pop();
         }
 
-        uint32_t batchSize = static_cast<uint32_t>(currentBatch.size());
-        client.reduce(currentBatch, reduceCtx);
+        uint32_t batchSize = static_cast<uint32_t>(batchToReduce.size());
+        client.reduce(batchToReduce, reduceCtx);
         state.fetch_add(batchSize);
     }
 }
@@ -147,25 +147,66 @@ MapReduceJob::MapReduceJob(const MapReduceClient &client, const InputVec &inputV
 
 MapReduceState MapReduceJob::getState(void) const
 {
-    // TODO: implement this function
+    uint64_t currState = state.load();
+    
+    MapReduceStage stage = static_cast<MapReduceStage>(currState >> 62);
+    uint32_t total = static_cast<uint32_t>((currState >> 31) & 0x7FFFFFFF);
+    uint32_t processed = static_cast<uint32_t>(currState & 0x7FFFFFFF);
+
+    double percentage = 0.0;
+    if (total > 0)
+    {
+        percentage = (static_cast<double>(processed) / total) * 100.0;
+    }
+    
+    return MapReduceState{stage, percentage};
 }
 
 void MapReduceJob::wait(void)
 {
-    // TODO: implement this function
+    // while (!isJoined){};
+    // return;
+    std::lock_guard<std::mutex> lock(waitMutex);
+    
+    if (isJoined.load())
+    {
+        return;
+    }
+    
+    for (auto& thread : threads)
+    {
+        if (thread.joinable())
+        {
+            thread.join(); 
+        }
+    }
+    
+    isJoined.store(true);
 }
 
 OutputVec MapReduceJob::getOutput(void)
 {
-    // TODO: implement this function
+    // return MapReduceState::stage;
+    wait();
+
+    std::sort(outputVec.begin(), outputVec.end(),
+              [](const OutputPair& a, const OutputPair& b) {
+                  return *(a.first) < *(b.first);
+              });
+              
+    return outputVec;
 }
 
 bool MapReduceJob::isDone(void) const
 {
-    // TODO: implement this function
+    MapReduceState currState = getState();
+    if (currState.stage == REDUCE_STAGE && currState.percentage >= 100.0){
+        return true;
+    }
+    return false;
 }
 
 MapReduceJob::~MapReduceJob()
 {
-    // TODO: implement this destructor
+    wait(); //waiting for all the threads to die
 }

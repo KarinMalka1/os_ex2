@@ -1,5 +1,6 @@
 #ifndef REDUCE_CONTEXT_H
 #define REDUCE_CONTEXT_H
+#include <mutex>
 
 #include "MapReduceKeys.h"
 
@@ -16,7 +17,7 @@ public:
     ReduceContext(OutputVec& outputVec, std::mutex& outputMutex);
     ~ReduceContext();
 
-    void addOutput(std::shared_ptr<K3> key, std::shared_ptr<V3> value);
+    // void addOutput(std::shared_ptr<K3> key, std::shared_ptr<V3> value);
 
 private:
     OutputVec& outputVec;

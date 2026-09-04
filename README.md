@@ -20,7 +20,7 @@ To ensure thread safety and efficiency, the framework implements several OS-leve
 
 ## Main Structure
 
-* `MapReduceJob.cpp` / `.h` - The core logic managing the thread pool, contexts, and the transition between the Map, Shuffle, and Reduce phases[cite: 1].
-* `MapContext.cpp` / `ReduceContext.cpp` - Wrappers for the data contexts passed to the threads during their execution[cite: 1].
-* `MapReduceClient.h` - The interface containing the virtual `Map` and `Reduce` functions that a user needs to implement[cite: 1].
-* `sample_client/SampleClient.cpp` - A basic example showing how to initialize and run a job using the framework[cite: 1].
+* `MapReduceJob.cpp` / `.h` - The core logic managing the thread pool, contexts, and the transition between the Map, Shuffle, and Reduce phases.
+* `MapContext.cpp` / `ReduceContext.cpp` - Wrappers for the data contexts passed to the threads during their execution.
+* `MapReduceClient.h` - The interface containing the virtual `Map` and `Reduce` functions that a user needs to implement.
+* `sample_client/SampleClient.cpp` - A basic example showing how to initialize and run a job using the framework.
